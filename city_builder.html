@@ -14,11 +14,17 @@
       font-size: 18px;
       cursor: pointer;
     }
+    #budget {
+      display: none;
+      font-size: 18px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
   <button id="startButton">Start Game</button>
+  <div id="budget">Remaining Budget: $<span id="remainingBudget">100</span></div>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
   <script src="game.js"></script>
