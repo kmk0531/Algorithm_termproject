@@ -5,6 +5,7 @@ const budgetDisplay = document.getElementById("budget");
 const remainingBudgetDisplay = document.getElementById("remainingBudget");
 const ctx = gameCanvas.getContext("2d");
 const restartButton = document.getElementById("restartButton");
+const showMSTButton = document.getElementById("showMSTButton");
 
 // Game setup variables
 let nodes = [];
@@ -44,19 +45,20 @@ function setupLevel(level) {
       { x: 300, y: 400 } // 노드 7
     ];
     edges = [
-      { from: 0, to: 1, cost: 6, selected: false},   // 노드 1 → 노드 2
-      { from: 0, to: 2, cost: 12, selected: false},  // 노드 1 → 노드 4
-      { from: 1, to: 4, cost: 14, selected: false},   // 노드 2 → 노드 4
-      { from: 1, to: 2, cost: 5, selected: false},   // 노드 2 → 노드 5
+      { from: 0, to: 1, cost: 6, selected: false},   
+      { from: 0, to: 2, cost: 12, selected: false},  
+      { from: 1, to: 4, cost: 14, selected: false},  
+      { from: 1, to: 2, cost: 5, selected: false},   
       { from: 1, to: 7, cost: 8, selected: false},
       { from: 2, to: 5, cost: 7, selected: false},
       { from: 2, to: 3, cost: 9, selected: false},
-      { from: 4, to: 7, cost: 3, selected: false},   // 노드 4 → 노드 5
-      { from: 5, to: 7, cost: 10, selected: false},   // 노드 5 → 노드 6
-      { from: 5, to: 6, cost: 15, selected: false}   // 노드 5 → 노드 7
+      { from: 4, to: 7, cost: 3, selected: false},   
+      { from: 5, to: 7, cost: 10, selected: false},   
+      { from: 5, to: 6, cost: 15, selected: false}   
     ];
     remainingBudget = 80;
   }
+  remainingBudgetDisplay.textContent = remainingBudget;
   drawMap();
 }
 
@@ -67,6 +69,7 @@ function initializeGame() {
   gameCanvas.style.display = "block";
   budgetDisplay.style.display = "block";
   restartButton.style.display = "block";
+  showMSTButton.style.display = "block";
 
   // Reset any game variables if necessary
   gameStarted = true;
@@ -170,13 +173,13 @@ function handleCanvasClick(event) {
   const mouseX = event.clientX - rect.left;
   const mouseY = event.clientY - rect.top;
 
-  console.log(`Mouse click position: (${mouseX}, ${mouseY})`);
+  console.log(`Mouse click position: (${mouseX}, ${mouseY})`); //디버깅용
 
   edges.forEach((edge, index) => {
     const fromNode = nodes[edge.from];
     const toNode = nodes[edge.to];
 
-    console.log(`Edge ${index}: from (${fromNode.x}, ${fromNode.y}) to (${toNode.x}, ${toNode.y})`);
+    console.log(`Edge ${index}: from (${fromNode.x}, ${fromNode.y}) to (${toNode.x}, ${toNode.y})`); //디버깅용
 
     let dist = 0;
 
@@ -204,7 +207,7 @@ function handleCanvasClick(event) {
     mouseY >= Math.min(fromNode.y, toNode.y) - 20 &&
     mouseY <= Math.max(fromNode.y, toNode.y) + 20; // 허용 범위 확대
 
-    console.log(`Edge ${index}: dist=${dist}, withinBounds=${withinBounds}`);
+    console.log(`Edge ${index}: dist=${dist}, withinBounds=${withinBounds}`); //디버깅용
 
   // 클릭 조건 확인
   if (dist < 10 && withinBounds && !edge.selected && remainingBudget >= edge.cost) {
@@ -229,6 +232,79 @@ function handleCanvasClick(event) {
 });
 }
 
+function primMST(nodes, edges) {
+  const mstEdges = []; // MST에 포함된 엣지
+  const visited = new Set(); // MST에 포함된 노드
+  const edgeQueue = []; // 선택 가능한 엣지들
+
+  // 시작 노드 선택 (노드 0)
+  visited.add(0);
+
+  // 초기 엣지 추가
+  edges.forEach(edge => {
+    if (edge.from === 0 || edge.to === 0) {
+      edgeQueue.push(edge);
+    }
+  });
+
+  while (mstEdges.length < nodes.length - 1) {
+    // 가장 작은 비용의 엣지 선택
+    edgeQueue.sort((a, b) => a.cost - b.cost);
+    const smallestEdge = edgeQueue.shift();
+
+    // 이미 방문한 노드 간의 엣지라면 건너뜀
+    if (visited.has(smallestEdge.from) && visited.has(smallestEdge.to)) {
+      continue;
+    }
+
+    // MST에 엣지 추가
+    mstEdges.push(smallestEdge);
+
+    // 새로 방문한 노드를 MST에 추가
+    const newNode = visited.has(smallestEdge.from) ? smallestEdge.to : smallestEdge.from;
+    visited.add(newNode);
+
+    // 새 노드와 연결된 엣지들을 큐에 추가
+    edges.forEach(edge => {
+      if (!visited.has(edge.from) || !visited.has(edge.to)) {
+        if (edge.from === newNode || edge.to === newNode) {
+          edgeQueue.push(edge);
+        }
+      }
+    });
+  }
+
+  return mstEdges;
+}
+
+function animateMST(mstEdges) {
+  let index = 0;
+
+  function drawNextEdge() {
+    if (index < mstEdges.length) {
+      const edge = mstEdges[index];
+      const fromNode = nodes[edge.from];
+      const toNode = nodes[edge.to];
+
+      // 엣지 그리기
+      ctx.strokeStyle = "blue"; // MST 엣지는 파란색
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(fromNode.x, fromNode.y);
+      ctx.lineTo(toNode.x, toNode.y);
+      ctx.stroke();
+
+      index++;
+
+      // 다음 엣지를 일정 시간 후 그리기
+      setTimeout(drawNextEdge, 500); // 500ms 간격
+    }
+  }
+
+  // 첫 엣지 그리기 시작
+  drawNextEdge();
+}
+
 // Add event listener to the Start button
 startButton.addEventListener("click", initializeGame);
 gameCanvas.addEventListener("click", handleCanvasClick);
@@ -240,4 +316,9 @@ restartButton.addEventListener("click", () => {
   restartButton.style.display = "none";
   budgetDisplay.style.display = "none";
   initializeGame();
+});
+showMSTButton.addEventListener("click", () => {
+  const mstEdges = primMST(nodes, edges); // MST 계산
+  drawMap(); // 기존 맵 다시 그리기
+  animateMST(mstEdges); // 최적 경로 표시
 });
