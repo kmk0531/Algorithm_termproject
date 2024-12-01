@@ -24,10 +24,20 @@
 <body>
 
   <button id="startButton">Start Game</button>
+  <button id="howToPlayButton" style="margin-top: 10px;">How To Play</button>
+  <div id="howToPlayContainer" style="display: none; margin-top: 20px; font-size: 14px; background: #f9f9f9; padding: 10px; border: 1px solid #ccc;">
+    <h3>How To Play</h3>
+    <p>1. Click on edges to select roads and connect all the nodes.</p>
+    <p>2. Stay within your budget and avoid unnecessary connections.</p>
+    <p>3. Complete the level to proceed to the next stage.</p>
+    <p>* Press Show Prim MST or Show Kruskal MST button to show optimal answers. *</p>
+    <p>Enjoy!</p>
+  </div>
   <div id="budget">Remaining Budget: $<span id="remainingBudget">100</span></div>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   <button id="restartButton" style="display: none;">Restart</button>
-  <button id="showMSTButton" style="margin-top: 10px; display: none">Show Optimal Path (Prim)</button> 
+  <button id="showPrimButton" style="margin-top: 10px; display: none">Show Prim MST</button>
+  <button id="showKruskalButton" style="margin-top: 10px; display: none">Show Kruskal MST</button> 
   <script src="game.js"></script>
 </body>
 </html>

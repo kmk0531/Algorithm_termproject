@@ -1,11 +1,13 @@
 // Get button and canvas elements
 const startButton = document.getElementById("startButton");
+const howToPlayButton = document.getElementById("howToPlayButton");
 const gameCanvas = document.getElementById("gameCanvas");
 const budgetDisplay = document.getElementById("budget");
 const remainingBudgetDisplay = document.getElementById("remainingBudget");
 const ctx = gameCanvas.getContext("2d");
 const restartButton = document.getElementById("restartButton");
-const showMSTButton = document.getElementById("showMSTButton");
+const showPrimButton = document.getElementById("showPrimButton");
+const showKruskalButton = document.getElementById("showKruskalButton");
 
 // Game setup variables
 let nodes = [];
@@ -69,7 +71,8 @@ function initializeGame() {
   gameCanvas.style.display = "block";
   budgetDisplay.style.display = "block";
   restartButton.style.display = "block";
-  showMSTButton.style.display = "block";
+  showPrimButton.style.display = "block";
+  showKruskalButton.style.display = "block";
 
   // Reset any game variables if necessary
   gameStarted = true;
@@ -305,8 +308,93 @@ function animateMST(mstEdges) {
   drawNextEdge();
 }
 
+//사이클 감지용 find, union 함수
+function find(parent, node) {
+  if (parent[node] !== node) {
+    parent[node] = find(parent, parent[node]); // 경로 압축
+  }
+  return parent[node];
+}
+
+function union(parent, rank, node1, node2) {
+  const root1 = find(parent, node1);
+  const root2 = find(parent, node2);
+
+  if (root1 !== root2) {
+    if (rank[root1] > rank[root2]) {
+      parent[root2] = root1;
+    } else if (rank[root1] < rank[root2]) {
+      parent[root1] = root2;
+    } else {
+      parent[root2] = root1;
+      rank[root1]++;
+    }
+  }
+}
+
+function kruskalMST(nodes, edges) {
+  const mstEdges = []; // MST에 포함된 엣지
+  const parent = []; // 부모 배열
+  const rank = []; // 트리 높이 배열
+
+  // 초기화
+  for (let i = 0; i < nodes.length; i++) {
+    parent[i] = i; // 각 노드는 자기 자신을 부모로 가짐
+    rank[i] = 0;   // 초기 트리 높이는 0
+  }
+
+  // 엣지 비용 기준으로 정렬
+  const sortedEdges = edges.slice().sort((a, b) => a.cost - b.cost);
+
+  for (const edge of sortedEdges) {
+    if (find(parent, edge.from) !== find(parent, edge.to)) {
+      mstEdges.push(edge); // MST에 추가
+      union(parent, rank, edge.from, edge.to); // 노드 병합
+    }
+
+    // MST가 완성되면 종료
+    if (mstEdges.length === nodes.length - 1) {
+      break;
+    }
+  }
+
+  return mstEdges;
+}
+
+function animateKruskalMST(mstEdges) {
+  let index = 0;
+
+  function drawNextEdge() {
+    if (index < mstEdges.length) {
+      const edge = mstEdges[index];
+      const fromNode = nodes[edge.from];
+      const toNode = nodes[edge.to];
+
+      ctx.strokeStyle = "purple";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(fromNode.x, fromNode.y);
+      ctx.lineTo(toNode.x, toNode.y);
+      ctx.stroke();
+
+      index++;
+      setTimeout(drawNextEdge, 500); // 500ms 간격으로 엣지 추가
+    }
+  }
+
+  drawNextEdge(); // 첫 엣지 그리기 시작
+}
+
 // Add event listener to the Start button
 startButton.addEventListener("click", initializeGame);
+howToPlayButton.addEventListener("click", () => {
+  const container = document.getElementById("howToPlayContainer");
+  if (container.style.display === "none") {
+    container.style.display = "block"; // 설명 보이기
+  } else {
+    container.style.display = "none"; // 설명 숨기기
+  }
+});
 gameCanvas.addEventListener("click", handleCanvasClick);
 restartButton.addEventListener("click", () => {
   // Reset game variables
@@ -317,8 +405,13 @@ restartButton.addEventListener("click", () => {
   budgetDisplay.style.display = "none";
   initializeGame();
 });
-showMSTButton.addEventListener("click", () => {
-  const mstEdges = primMST(nodes, edges); // MST 계산
+showPrimButton.addEventListener("click", () => {
+  const mstEdges = primMST(nodes, edges); // Prim MST 계산
   drawMap(); // 기존 맵 다시 그리기
   animateMST(mstEdges); // 최적 경로 표시
+});
+showKruskalButton.addEventListener("click", () =>{
+  const mstEdges = kruskalMST(nodes, edges); // Kruskal MST 계산
+  drawMap(); // 기존 맵 초기화
+  animateKruskalMST(mstEdges); // Kruskal MST 애니메이션 표시
 });
