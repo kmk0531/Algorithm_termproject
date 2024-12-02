@@ -292,29 +292,23 @@ function handleCanvasClick(event) {
   if (!gameStarted) return;
 
   const rect = gameCanvas.getBoundingClientRect();
-  const mouseX = event.clientX - rect.left;
-  const mouseY = event.clientY - rect.top;
+  const mouseX = (event.clientX - rect.left) * (gameCanvas.width / rect.width); //캔버스 위치에 맞춰 마우스 위치 계산
+  const mouseY = (event.clientY - rect.top) * (gameCanvas.height / rect.height);
 
-  console.log(`Mouse click position: (${mouseX}, ${mouseY})`); //디버깅용
+  console.log(`Mouse Position: (${mouseX}, ${mouseY})`); //디버깅용
+  console.log(`Canvas Position: left=${rect.left}, top=${rect.top}`); //디버깅용
 
   edges.forEach((edge, index) => {
     const fromNode = nodes[edge.from];
     const toNode = nodes[edge.to];
 
-    console.log(`Edge ${index}: from (${fromNode.x}, ${fromNode.y}) to (${toNode.x}, ${toNode.y})`); //디버깅용
-
     let dist = 0;
 
-    // 수평 엣지 처리 (y 좌표가 동일)
-    if (fromNode.y === toNode.y) {
+    if (fromNode.y === toNode.y) { //수평 엣지 처리
       dist = Math.abs(mouseY - fromNode.y);
-    }
-    // 수직 엣지 처리 (x 좌표가 동일)
-    else if (fromNode.x === toNode.x) {
+    } else if (fromNode.x === toNode.x) { //수직 엣지 처리
       dist = Math.abs(mouseX - fromNode.x);
-    }
-    // 일반적인 대각선 엣지 처리
-    else {
+    } else { //대각선 엣지 처리
       dist = Math.abs(
         (toNode.y - fromNode.y) * mouseX -
         (toNode.x - fromNode.x) * mouseY +
@@ -324,50 +318,34 @@ function handleCanvasClick(event) {
     }
 
     const withinBounds =
-    mouseX >= Math.min(fromNode.x, toNode.x) - 10 &&
-    mouseX <= Math.max(fromNode.x, toNode.x) + 10 &&
-    mouseY >= Math.min(fromNode.y, toNode.y) - 20 &&
-    mouseY <= Math.max(fromNode.y, toNode.y) + 20; // 허용 범위 확대
+      mouseX >= Math.min(fromNode.x, toNode.x) - 10 &&
+      mouseX <= Math.max(fromNode.x, toNode.x) + 10 &&
+      mouseY >= Math.min(fromNode.y, toNode.y) - 20 &&
+      mouseY <= Math.max(fromNode.y, toNode.y) + 20; //마우스 오차범위 설정
 
     console.log(`Edge ${index}: dist=${dist}, withinBounds=${withinBounds}`); //디버깅용
 
-  // 클릭 조건 확인
-  if (dist < 10 && withinBounds && !edge.selected ) {
-    edge.selected = true; // 엣지 선택
-    remainingBudget -= edge.cost; // 예산 차감
-    remainingBudgetDisplay.textContent = remainingBudget; // UI 업데이트
-    drawMap(); // 맵 다시 그리기
-
-     // 예산이 음수가 되면 게임 오버 처리
-     if (remainingBudget < 0) {
-      alert("Game Over! You've run out of budget!");
-      gameStarted = false;
-      setTimeout(() => {
-         // 실패한 레벨 재시작
-         setupLevel(currentLevel); // 현재 레벨 설정
-         remainingBudgetDisplay.textContent = remainingBudget; // 예산 업데이트
-         gameStarted = true; // 게임 시작
-         drawMap(); // 맵 다시 그리기
-      }, 1000); // 1초 후 재시작
+    if (dist < 15 && withinBounds && !edge.selected && remainingBudget >= edge.cost) { //엣지 클릭 판정 충족했다면
+      edge.selected = true;
+      remainingBudget -= edge.cost;
+      remainingBudgetDisplay.textContent = remainingBudget;
+      drawMap();
     }
-
-
-
-    if (checkVictory()) {
-      showVictoryMessage();
-      setTimeout(() => {
-        currentLevel++;
-        if (currentLevel > 3) {
-          alert("You've completed all levels!");
-          gameStarted = false;
-        } else {
-          setupLevel(currentLevel);
-        }
-      }, 2000); // 2초 지연
-    }
+  });
+  if (checkVictory()) {
+    showVictoryMessage();
+    setTimeout(() => {
+      currentLevel++;
+      if (currentLevel > 3) {
+        alert("You've completed all levels!");
+        gameStarted = false;
+      } else {
+        setupLevel(currentLevel);
+      }
+    }, 2000); // 2초 지연
   }
-});
 }
+  
 
 function primMST(nodes, edges) {
   const mstEdges = []; // MST에 포함된 엣지
