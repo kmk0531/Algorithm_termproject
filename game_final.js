@@ -143,6 +143,35 @@ function setupLevel(level) {
       { from: 5, to: 6, cost: 15, selected: false}   
     ];
     remainingBudget = 65;
+  } else if (level === 4){
+    nodes = [
+      { x: 200, y: 100 },
+      { x: 300, y: 100 },
+      { x: 400, y: 100 },
+      { x: 100, y: 200 },
+      { x: 250, y: 200 },
+      { x: 500, y: 200 },
+      { x: 200, y: 300 },
+      { x: 300, y: 300 },
+      { x: 400, y: 300 }
+    ];
+    edges = [
+      { from: 0, to: 1, cost: 8, selected: false},
+      { from: 0, to: 3, cost: 4, selected: false},
+      { from: 0, to: 6, cost: 11, selected: false},
+      { from: 1, to: 2, cost: 7, selected: false},
+      { from: 1, to: 4, cost: 2, selected: false},
+      { from: 1, to: 8, cost: 4, selected: false},
+      { from: 2, to: 5, cost: 9, selected: false},
+      { from: 2, to: 8, cost: 14, selected: false},
+      { from: 3, to: 6, cost: 8, selected: false},
+      { from: 4, to: 6, cost: 7, selected: false},
+      { from: 4, to: 7, cost: 6, selected: false},
+      { from: 5, to: 8, cost: 10, selected: false},
+      { from: 6, to: 7, cost: 1, selected: false},
+      { from: 7, to: 8, cost: 2, selected: false}
+    ];
+    remainingBudget = 50;
   }
   remainingBudgetDisplay.textContent = remainingBudget;
   drawMap();
@@ -243,7 +272,7 @@ function showVictoryMessage() {
    levelsCompleted++;
 
      // 모든 레벨을 클리어한 경우 폭죽 터지게
-  if (levelsCompleted === 3) {
+  if (levelsCompleted === 4) {
     startFireworkSequence(); // 폭죽 효과 시작
   }
 }
@@ -332,7 +361,7 @@ function handleCanvasClick(event) {
     showVictoryMessage();
     setTimeout(() => {
       currentLevel++;
-      if (currentLevel > 3) {
+      if (currentLevel > 4) {
         alert("You've completed all levels!");
         gameStarted = false;
       } else {
