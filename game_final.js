@@ -264,7 +264,6 @@ function checkFailure() {
     }, 1000); // 1초 후 재시작
     // 레벨 완료된 갯수 감소
    levelsCompleted--;
-    return true;
   }
 
   // 예산 내에서 선택할 수 있는 엣지가 없을 경우 게임 오버 처리
@@ -282,10 +281,7 @@ function checkFailure() {
     }, 1000); // 1초 후 재시작
     // 레벨 완료된 갯수 감소
    levelsCompleted--;
-    return true;
   }
-
-  return false;
 }
 
 function handleCanvasClick(event) {
@@ -344,6 +340,7 @@ function handleCanvasClick(event) {
       }
     }, 2000); // 2초 지연
   }
+  else checkFailure();
 }
   
 
